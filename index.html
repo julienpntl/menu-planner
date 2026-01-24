@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Menu Planner">
   <title>Menu Planner</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -27,7 +27,7 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useCallback } = React;
+    const { useState, useCallback, memo } = React;
 
     // Icons as simple SVG components
     const Icon = ({ d, className = "w-5 h-5" }) => (
@@ -37,7 +37,6 @@
     );
 
     const Icons = {
-      utensils: "M12 2L12 8M12 8C10.3431 8 9 9.34315 9 11V12H15V11C15 9.34315 13.6569 8 12 8ZM9 12V22M15 12V22M5 2V8C5 9.10457 5.89543 10 7 10H7.5M5 8H7M19 2V8C19 9.10457 18.1046 10 17 10H16.5M19 8H17",
       shuffle: "M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5",
       calendar: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
       cart: "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z",
@@ -60,27 +59,125 @@
 
     // Base de données initiale
     const defaultMealsDatabase = [
-      { id: 1, name: "Poulet rôti aux légumes", category: "viande", servings: 2, description: "Four 200°C, 45 min", ingredients: [{ name: "Cuisses de poulet", quantity: 1, unit: "pièce" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Carottes", quantity: 1, unit: "pièce" }, { name: "Oignons", quantity: 0.5, unit: "pièce" }] },
-      { id: 2, name: "Spaghetti bolognaise", category: "viande", servings: 2, description: "Mijoter 30 min", ingredients: [{ name: "Spaghetti", quantity: 100, unit: "g" }, { name: "Viande hachée", quantity: 100, unit: "g" }, { name: "Tomates concassées", quantity: 100, unit: "g" }, { name: "Oignons", quantity: 0.5, unit: "pièce" }] },
-      { id: 3, name: "Saumon grillé et riz", category: "poisson", servings: 1, description: "4 min par côté", ingredients: [{ name: "Pavé de saumon", quantity: 1, unit: "pièce" }, { name: "Riz basmati", quantity: 80, unit: "g" }, { name: "Brocoli", quantity: 100, unit: "g" }] },
-      { id: 4, name: "Quiche lorraine", category: "viande", servings: 2, description: "Four 180°C, 35-40 min", ingredients: [{ name: "Pâte brisée", quantity: 0.25, unit: "pièce" }, { name: "Lardons", quantity: 50, unit: "g" }, { name: "Œufs", quantity: 1, unit: "pièce" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
-      { id: 5, name: "Curry de légumes", category: "végétarien", servings: 2, description: "Mijoter 20 min", ingredients: [{ name: "Pois chiches", quantity: 100, unit: "g" }, { name: "Lait de coco", quantity: 100, unit: "ml" }, { name: "Courgettes", quantity: 0.5, unit: "pièce" }, { name: "Riz", quantity: 80, unit: "g" }] },
-      { id: 6, name: "Gratin dauphinois", category: "végétarien", servings: 2, description: "Four 180°C, 1h", ingredients: [{ name: "Pommes de terre", quantity: 250, unit: "g" }, { name: "Crème fraîche", quantity: 8, unit: "cl" }, { name: "Lait", quantity: 5, unit: "cl" }] },
-      { id: 7, name: "Tacos au bœuf", category: "viande", servings: 1, description: "Cuisson 10 min", ingredients: [{ name: "Tortillas", quantity: 2, unit: "pièces" }, { name: "Viande hachée", quantity: 100, unit: "g" }, { name: "Haricots rouges", quantity: 60, unit: "g" }, { name: "Tomates", quantity: 1, unit: "pièce" }] },
-      { id: 8, name: "Risotto champignons", category: "végétarien", servings: 1, description: "25 min en remuant", ingredients: [{ name: "Riz arborio", quantity: 90, unit: "g" }, { name: "Champignons", quantity: 80, unit: "g" }, { name: "Parmesan", quantity: 20, unit: "g" }] },
-      { id: 9, name: "Blanquette de veau", category: "viande", servings: 2, description: "1h30 à feu doux", ingredients: [{ name: "Veau", quantity: 150, unit: "g" }, { name: "Carottes", quantity: 1, unit: "pièce" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }, { name: "Riz", quantity: 80, unit: "g" }] },
-      { id: 10, name: "Pâtes au pesto", category: "végétarien", servings: 2, description: "Pâtes al dente", ingredients: [{ name: "Pennes", quantity: 100, unit: "g" }, { name: "Pesto", quantity: 40, unit: "g" }, { name: "Tomates cerises", quantity: 60, unit: "g" }, { name: "Mozzarella", quantity: 50, unit: "g" }] },
-      { id: 11, name: "Ratatouille et œufs", category: "végétarien", servings: 2, description: "40 min à couvert", ingredients: [{ name: "Courgettes", quantity: 0.5, unit: "pièce" }, { name: "Aubergines", quantity: 0.5, unit: "pièce" }, { name: "Tomates", quantity: 1, unit: "pièce" }, { name: "Œufs", quantity: 2, unit: "pièces" }] },
-      { id: 12, name: "Filet mignon pruneaux", category: "viande", servings: 2, description: "Four 180°C, 25 min", ingredients: [{ name: "Filet mignon", quantity: 150, unit: "g" }, { name: "Pruneaux", quantity: 40, unit: "g" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }, { name: "Pommes de terre", quantity: 150, unit: "g" }] },
-      { id: 13, name: "Salade niçoise", category: "poisson", servings: 1, description: "Servir frais", ingredients: [{ name: "Thon", quantity: 80, unit: "g" }, { name: "Haricots verts", quantity: 80, unit: "g" }, { name: "Œufs", quantity: 1, unit: "pièce" }, { name: "Tomates", quantity: 1, unit: "pièce" }] },
-      { id: 14, name: "Lasagnes", category: "viande", servings: 2, description: "Four 180°C, 45 min", ingredients: [{ name: "Feuilles lasagne", quantity: 3, unit: "pièces" }, { name: "Viande hachée", quantity: 125, unit: "g" }, { name: "Béchamel", quantity: 12, unit: "cl" }, { name: "Gruyère", quantity: 40, unit: "g" }] },
-      { id: 15, name: "Cabillaud papillote", category: "poisson", servings: 1, description: "Four 200°C, 15 min", ingredients: [{ name: "Cabillaud", quantity: 1, unit: "pièce" }, { name: "Courgettes", quantity: 0.5, unit: "pièce" }, { name: "Citron", quantity: 0.25, unit: "pièce" }] },
-      { id: 16, name: "Chili con carne", category: "viande", servings: 2, description: "Mijoter 45 min", ingredients: [{ name: "Viande hachée", quantity: 125, unit: "g" }, { name: "Haricots rouges", quantity: 100, unit: "g" }, { name: "Tomates", quantity: 100, unit: "g" }, { name: "Riz", quantity: 80, unit: "g" }] },
-      { id: 17, name: "Omelette garnie", category: "végétarien", servings: 1, description: "3-4 min", ingredients: [{ name: "Œufs", quantity: 3, unit: "pièces" }, { name: "Jambon", quantity: 40, unit: "g" }, { name: "Fromage", quantity: 25, unit: "g" }, { name: "Champignons", quantity: 50, unit: "g" }] },
-      { id: 18, name: "Couscous végétarien", category: "végétarien", servings: 2, description: "30 min", ingredients: [{ name: "Semoule", quantity: 100, unit: "g" }, { name: "Pois chiches", quantity: 80, unit: "g" }, { name: "Carottes", quantity: 1, unit: "pièce" }, { name: "Courgettes", quantity: 0.5, unit: "pièce" }] },
-      { id: 19, name: "Poêlée asiatique tofu", category: "végétarien", servings: 1, description: "10 min au wok", ingredients: [{ name: "Tofu", quantity: 100, unit: "g" }, { name: "Nouilles", quantity: 80, unit: "g" }, { name: "Brocoli", quantity: 80, unit: "g" }, { name: "Sauce soja", quantity: 1, unit: "c. à soupe" }] },
-      { id: 20, name: "Hachis parmentier", category: "viande", servings: 2, description: "Gratiner 20 min à 200°C", ingredients: [{ name: "Viande hachée", quantity: 125, unit: "g" }, { name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Gruyère", quantity: 25, unit: "g" }] }
-    ];
+  // === VIANDES ===
+  { id: 1, name: "Aligot saucisse", category: "viande", servings: 2, description: "Purée à l'aligot avec saucisse grillée", ingredients: [{ name: "Saucisse", quantity: 1, unit: "pièce" }, { name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Tome fraîche", quantity: 50, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 2, name: "Riz cantonais", category: "viande", servings: 2, description: "Riz sauté avec petits pois, jambon, omelette", ingredients: [{ name: "Riz", quantity: 80, unit: "g" }, { name: "Jambon", quantity: 50, unit: "g" }, { name: "Petits pois", quantity: 50, unit: "g" }, { name: "Œufs", quantity: 1, unit: "pièce" }] },
+  { id: 3, name: "Riz ratatouille poulet", category: "viande", servings: 2, description: "Riz ou semoule avec ratatouille et poulet", ingredients: [{ name: "Riz", quantity: 80, unit: "g" }, { name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Ratatouille", quantity: 150, unit: "g" }] },
+  { id: 4, name: "Riz épinards steak", category: "viande", servings: 1, description: "Riz ou pâtes avec épinards et steak", ingredients: [{ name: "Riz", quantity: 80, unit: "g" }, { name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Épinards", quantity: 100, unit: "g" }] },
+  { id: 5, name: "Riz chili", category: "viande", servings: 2, description: "Riz avec chili con carne", ingredients: [{ name: "Riz", quantity: 80, unit: "g" }, { name: "Viande hachée", quantity: 100, unit: "g" }, { name: "Haricots rouges", quantity: 80, unit: "g" }, { name: "Tomates concassées", quantity: 100, unit: "g" }] },
+  { id: 6, name: "Riz poulet au curry", category: "viande", servings: 2, description: "Poulet sauce curry avec riz", ingredients: [{ name: "Riz", quantity: 80, unit: "g" }, { name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Lait de coco", quantity: 10, unit: "cl" }, { name: "Pâte de curry", quantity: 1, unit: "c. à soupe" }] },
+  { id: 7, name: "Pâtes carbo", category: "viande", servings: 2, description: "Carbonara : lardons, œufs, parmesan", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Lardons", quantity: 50, unit: "g" }, { name: "Œufs", quantity: 1, unit: "pièce" }, { name: "Parmesan", quantity: 20, unit: "g" }, { name: "Crème fraîche", quantity: 2, unit: "cl" }] },
+  { id: 8, name: "Pâtes bolo", category: "viande", servings: 2, description: "Pâtes à la bolognaise", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Viande hachée", quantity: 100, unit: "g" }, { name: "Tomates concassées", quantity: 100, unit: "g" }, { name: "Oignons", quantity: 0.5, unit: "pièce" }] },
+  { id: 9, name: "Pâtes courgettes poulet", category: "viande", servings: 2, description: "Pâtes aux courgettes et poulet", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Courgettes", quantity: 1, unit: "pièce" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 10, name: "Pâtes courgettes steak", category: "viande", servings: 1, description: "Pâtes aux courgettes et steak haché", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Courgettes", quantity: 1, unit: "pièce" }] },
+  { id: 11, name: "Pâtes filet mignon", category: "viande", servings: 2, description: "Pâtes au filet mignon", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Filet mignon", quantity: 100, unit: "g" }, { name: "Champignons", quantity: 80, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 12, name: "Gnocchi steak", category: "viande", servings: 1, description: "Gnocchi avec steak haché", ingredients: [{ name: "Gnocchi", quantity: 150, unit: "g" }, { name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Sauce tomate", quantity: 5, unit: "cl" }] },
+  { id: 13, name: "Gnocchi poulet", category: "viande", servings: 2, description: "Gnocchi avec poulet", ingredients: [{ name: "Gnocchi", quantity: 150, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 14, name: "Patates poivrons omelette", category: "viande", servings: 2, description: "Pommes de terre sautées, poivrons, omelette", ingredients: [{ name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Poivrons", quantity: 1, unit: "pièce" }, { name: "Œufs", quantity: 2, unit: "pièces" }] },
+  { id: 15, name: "Patates grillées lardons champignons", category: "viande", servings: 2, description: "Patates grillées, lardons, champignons, oignons", ingredients: [{ name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Lardons", quantity: 50, unit: "g" }, { name: "Champignons", quantity: 80, unit: "g" }, { name: "Oignons", quantity: 0.5, unit: "pièce" }] },
+  { id: 16, name: "Lentilles saucisses", category: "viande", servings: 2, description: "Lentilles aux saucisses", ingredients: [{ name: "Lentilles", quantity: 100, unit: "g" }, { name: "Saucisses", quantity: 2, unit: "pièces" }, { name: "Carottes", quantity: 1, unit: "pièce" }] },
+  { id: 17, name: "Galettes bretonnes", category: "viande", servings: 1, description: "Galettes jambon, œufs, emmental, beurre salé", ingredients: [{ name: "Galettes de blé noir", quantity: 2, unit: "pièces" }, { name: "Jambon", quantity: 2, unit: "tranches" }, { name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Emmental", quantity: 40, unit: "g" }] },
+  { id: 18, name: "Wraps poulet", category: "viande", servings: 1, description: "Wraps poulet, tomate, poivron, emmental", ingredients: [{ name: "Tortillas", quantity: 2, unit: "pièces" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Tomates", quantity: 1, unit: "pièce" }, { name: "Emmental", quantity: 30, unit: "g" }] },
+  { id: 19, name: "Raclette", category: "viande", servings: 1, description: "Raclette : patates, fromage, charcuterie", ingredients: [{ name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Fromage à raclette", quantity: 100, unit: "g" }, { name: "Charcuterie", quantity: 80, unit: "g" }] },
+  { id: 20, name: "Quiche lorraine", category: "viande", servings: 2, description: "Mode Bake 180°/20min", ingredients: [{ name: "Pâte brisée", quantity: 1, unit: "pièce" }, { name: "Lardons", quantity: 100, unit: "g" }, { name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Crème fraîche", quantity: 10, unit: "cl" }, { name: "Emmental", quantity: 50, unit: "g" }] },
+  { id: 21, name: "Cassoulet", category: "viande", servings: 2, description: "Cassoulet traditionnel", ingredients: [{ name: "Cassoulet en boîte", quantity: 1, unit: "boîte" }] },
+  { id: 22, name: "Aubergines gratinées steak", category: "viande", servings: 2, description: "Aubergines gratinées avec steak haché", ingredients: [{ name: "Aubergines", quantity: 1, unit: "pièce" }, { name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Sauce tomate", quantity: 10, unit: "cl" }, { name: "Gruyère", quantity: 40, unit: "g" }] },
+  { id: 23, name: "Tortilla espagnole", category: "viande", servings: 2, description: "Omelette patates, lardons, œufs, oignons", ingredients: [{ name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Lardons", quantity: 50, unit: "g" }, { name: "Œufs", quantity: 3, unit: "pièces" }, { name: "Oignons", quantity: 0.5, unit: "pièce" }] },
+  { id: 24, name: "Escalope parmesane", category: "viande", servings: 1, description: "Escalope panée œuf, parmesan", ingredients: [{ name: "Escalope de poulet", quantity: 1, unit: "pièce" }, { name: "Œufs", quantity: 1, unit: "pièce" }, { name: "Parmesan", quantity: 30, unit: "g" }] },
+  { id: 25, name: "Croque Monsieur", category: "viande", servings: 1, description: "Croque jambon fromage", ingredients: [{ name: "Pain de mie", quantity: 2, unit: "tranches" }, { name: "Jambon", quantity: 2, unit: "tranches" }, { name: "Emmental", quantity: 40, unit: "g" }] },
+  { id: 26, name: "Croque Madame", category: "viande", servings: 1, description: "Croque avec œuf au plat", ingredients: [{ name: "Pain de mie", quantity: 2, unit: "tranches" }, { name: "Jambon", quantity: 2, unit: "tranches" }, { name: "Emmental", quantity: 40, unit: "g" }, { name: "Œufs", quantity: 1, unit: "pièce" }] },
+  { id: 27, name: "Andouillette", category: "viande", servings: 1, description: "Andouillette grillée", ingredients: [{ name: "Andouillette", quantity: 1, unit: "pièce" }, { name: "Frites", quantity: 150, unit: "g" }] },
+  { id: 28, name: "Nouilles chinoises poulet", category: "viande", servings: 1, description: "Nouilles aux légumes et poulet", ingredients: [{ name: "Nouilles chinoises", quantity: 100, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Légumes", quantity: 100, unit: "g" }, { name: "Sauce soja", quantity: 2, unit: "c. à soupe" }] },
+  { id: 29, name: "Samosas au bœuf", category: "viande", servings: 1, description: "Samosas bœuf épicés", ingredients: [{ name: "Samosas", quantity: 4, unit: "pièces" }, { name: "Salade", quantity: 50, unit: "g" }] },
+  { id: 30, name: "Salade gésiers", category: "viande", servings: 1, description: "Salade gésiers/foies de volaille", ingredients: [{ name: "Gésiers confits", quantity: 100, unit: "g" }, { name: "Salade", quantity: 80, unit: "g" }, { name: "Tomates cerises", quantity: 50, unit: "g" }] },
+  { id: 31, name: "Courgettes farcies lardons", category: "viande", servings: 2, description: "Courgettes farcies aux lardons", ingredients: [{ name: "Courgettes", quantity: 2, unit: "pièces" }, { name: "Lardons", quantity: 80, unit: "g" }, { name: "Riz", quantity: 50, unit: "g" }, { name: "Gruyère", quantity: 30, unit: "g" }] },
+  { id: 32, name: "Gratin courgettes lardons", category: "viande", servings: 2, description: "Gratin de courgettes aux lardons", ingredients: [{ name: "Courgettes", quantity: 2, unit: "pièces" }, { name: "Lardons", quantity: 80, unit: "g" }, { name: "Crème fraîche", quantity: 10, unit: "cl" }, { name: "Gruyère", quantity: 50, unit: "g" }] },
+  { id: 33, name: "Nouilles sautées poulet", category: "viande", servings: 1, description: "Nouilles sautées au poulet", ingredients: [{ name: "Nouilles", quantity: 100, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Sauce soja", quantity: 2, unit: "c. à soupe" }] },
+  { id: 34, name: "Omelette au bacon", category: "viande", servings: 1, description: "Omelette garnie au bacon", ingredients: [{ name: "Œufs", quantity: 3, unit: "pièces" }, { name: "Bacon", quantity: 3, unit: "tranches" }] },
+  { id: 35, name: "Pâtes avocat poulet", category: "viande", servings: 1, description: "Pâtes à l'avocat et poulet", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Avocat", quantity: 0.5, unit: "pièce" }] },
+  { id: 36, name: "Pâtes poulet fromage frais", category: "viande", servings: 2, description: "Pâtes au poulet et fromage frais", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Fromage frais", quantity: 50, unit: "g" }] },
+  { id: 37, name: "Pâtes crémeuses poulet épinards", category: "viande", servings: 2, description: "Pâtes crémeuses au poulet et épinards", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Épinards", quantity: 80, unit: "g" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
+  { id: 38, name: "Pavé de bœuf sauce roquefort", category: "viande", servings: 1, description: "Pavé de bœuf sauce roquefort et patates", ingredients: [{ name: "Pavé de bœuf", quantity: 150, unit: "g" }, { name: "Roquefort", quantity: 30, unit: "g" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 39, name: "Poêlée patates poulet champignons", category: "viande", servings: 2, description: "Poêlée patates, poulet, sauce champignons", ingredients: [{ name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Champignons", quantity: 100, unit: "g" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
+  { id: 40, name: "Poulet tapenade haricots verts", category: "viande", servings: 2, description: "Poulet à la tapenade et haricots verts", ingredients: [{ name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Tapenade", quantity: 2, unit: "c. à soupe" }, { name: "Haricots verts", quantity: 150, unit: "g" }] },
+  { id: 41, name: "Poulet riz avocat tomate", category: "viande", servings: 1, description: "Poulet au riz, avocat et tomate", ingredients: [{ name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Riz", quantity: 80, unit: "g" }, { name: "Avocat", quantity: 0.5, unit: "pièce" }, { name: "Tomates", quantity: 1, unit: "pièce" }] },
+  { id: 42, name: "Poulet légumes chimichurri", category: "viande", servings: 1, description: "Poulet aux légumes sauce chimichurri", ingredients: [{ name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Légumes", quantity: 150, unit: "g" }, { name: "Sauce chimichurri", quantity: 2, unit: "c. à soupe" }] },
+  { id: 43, name: "Poulet frites", category: "viande", servings: 1, description: "Poulet grillé et frites", ingredients: [{ name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Frites", quantity: 150, unit: "g" }] },
+  { id: 44, name: "Steak frites", category: "viande", servings: 1, description: "Steak haché et frites", ingredients: [{ name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Frites", quantity: 150, unit: "g" }] },
+  { id: 45, name: "Poulet purée brocolis", category: "viande", servings: 2, description: "Poulet et purée de brocolis", ingredients: [{ name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Brocolis", quantity: 200, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 46, name: "Poulet ratatouille", category: "viande", servings: 2, description: "Poulet grillé avec ratatouille", ingredients: [{ name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Ratatouille", quantity: 200, unit: "g" }] },
+  { id: 47, name: "Quiche poulet champignons", category: "viande", servings: 2, description: "Quiche sans pâte poulet champignons, salade", ingredients: [{ name: "Filet de poulet", quantity: 100, unit: "g" }, { name: "Champignons", quantity: 100, unit: "g" }, { name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }, { name: "Salade", quantity: 50, unit: "g" }] },
+  { id: 48, name: "Ratatouille boulettes pâtes", category: "viande", servings: 2, description: "Ratatouille aux boulettes de viande et pâtes", ingredients: [{ name: "Boulettes de viande", quantity: 4, unit: "pièces" }, { name: "Pâtes", quantity: 100, unit: "g" }, { name: "Ratatouille", quantity: 150, unit: "g" }] },
+  { id: 49, name: "Salade pâtes poulet chèvre", category: "viande", servings: 1, description: "Salade de pâtes au poulet et chèvre", ingredients: [{ name: "Pâtes", quantity: 80, unit: "g" }, { name: "Filet de poulet", quantity: 80, unit: "g" }, { name: "Fromage de chèvre", quantity: 40, unit: "g" }, { name: "Salade", quantity: 50, unit: "g" }] },
+  { id: 50, name: "Sandwich steak fromage", category: "viande", servings: 1, description: "Sandwich au steak haché et fromage", ingredients: [{ name: "Pain", quantity: 1, unit: "pièce" }, { name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Fromage", quantity: 30, unit: "g" }] },
+  { id: 51, name: "Sandwich jambon fromage œuf", category: "viande", servings: 1, description: "Sandwich jambon fromage et œuf", ingredients: [{ name: "Pain", quantity: 1, unit: "pièce" }, { name: "Jambon", quantity: 2, unit: "tranches" }, { name: "Fromage", quantity: 30, unit: "g" }, { name: "Œufs", quantity: 1, unit: "pièce" }] },
+  { id: 52, name: "Steak haché carottes vichy", category: "viande", servings: 2, description: "Steak haché et carottes vichy", ingredients: [{ name: "Steak haché", quantity: 1, unit: "pièce" }, { name: "Carottes", quantity: 3, unit: "pièces" }, { name: "Beurre", quantity: 15, unit: "g" }] },
+  { id: 53, name: "Wrap omelette", category: "viande", servings: 1, description: "Wrap à l'omelette", ingredients: [{ name: "Tortilla", quantity: 1, unit: "pièce" }, { name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Fromage", quantity: 20, unit: "g" }] },
+  { id: 54, name: "Wrap jambon mayonnaise", category: "viande", servings: 1, description: "Wrap de jambon mayonnaise", ingredients: [{ name: "Tortilla", quantity: 1, unit: "pièce" }, { name: "Jambon", quantity: 2, unit: "tranches" }, { name: "Mayonnaise", quantity: 1, unit: "c. à soupe" }] },
+  { id: 55, name: "Wrap kefta", category: "viande", servings: 1, description: "Wrap de kefta", ingredients: [{ name: "Tortilla", quantity: 1, unit: "pièce" }, { name: "Kefta", quantity: 80, unit: "g" }, { name: "Tomates", quantity: 0.5, unit: "pièce" }] },
+  { id: 56, name: "Wrap poulet avocat", category: "viande", servings: 1, description: "Wrap de poulet et avocat", ingredients: [{ name: "Tortilla", quantity: 1, unit: "pièce" }, { name: "Filet de poulet", quantity: 80, unit: "g" }, { name: "Avocat", quantity: 0.5, unit: "pièce" }] },
+  { id: 57, name: "Poulet rôti riz brocolis", category: "viande", servings: 2, description: "Poulet rôti + riz basmati + brocolis vapeur", ingredients: [{ name: "Cuisse de poulet", quantity: 1, unit: "pièce" }, { name: "Riz basmati", quantity: 80, unit: "g" }, { name: "Brocolis", quantity: 150, unit: "g" }] },
+  { id: 58, name: "Bœuf haché patates haricots", category: "viande", servings: 2, description: "Bœuf haché + patates + haricots verts", ingredients: [{ name: "Viande hachée", quantity: 100, unit: "g" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Haricots verts", quantity: 100, unit: "g" }] },
+  { id: 59, name: "Omelette patates poivrons", category: "viande", servings: 2, description: "Omelette + patates rissolées + poivrons", ingredients: [{ name: "Œufs", quantity: 3, unit: "pièces" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Poivrons", quantity: 0.5, unit: "pièce" }] },
+  { id: 60, name: "Tortilla dinde salade maïs", category: "viande", servings: 1, description: "Tortilla blé + dinde effilochée + salade + maïs", ingredients: [{ name: "Tortilla", quantity: 1, unit: "pièce" }, { name: "Dinde", quantity: 80, unit: "g" }, { name: "Salade", quantity: 40, unit: "g" }, { name: "Maïs", quantity: 30, unit: "g" }] },
+  { id: 61, name: "Dinde purée brocolis", category: "viande", servings: 2, description: "Dinde + purée de pommes de terre + brocolis", ingredients: [{ name: "Escalope de dinde", quantity: 1, unit: "pièce" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Brocolis", quantity: 100, unit: "g" }] },
+  { id: 62, name: "Boulettes bœuf riz poivrons", category: "viande", servings: 2, description: "Boulettes de bœuf + riz + poivrons", ingredients: [{ name: "Boulettes de bœuf", quantity: 4, unit: "pièces" }, { name: "Riz", quantity: 80, unit: "g" }, { name: "Poivrons", quantity: 1, unit: "pièce" }] },
+  { id: 63, name: "Poulet pois cassés carottes", category: "viande", servings: 2, description: "Poulet + pois cassés + carottes vapeur", ingredients: [{ name: "Filet de poulet", quantity: 120, unit: "g" }, { name: "Pois cassés", quantity: 80, unit: "g" }, { name: "Carottes", quantity: 2, unit: "pièces" }] },
+  { id: 64, name: "Lapin rôti patates courgettes", category: "viande", servings: 2, description: "Lapin rôti + patates + courgettes", ingredients: [{ name: "Lapin", quantity: 150, unit: "g" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Courgettes", quantity: 1, unit: "pièce" }] },
+  { id: 65, name: "Cake jambon courgette chèvre", category: "viande", servings: 2, description: "Cake jambon, courgette, poivrons, chèvre", ingredients: [{ name: "Farine", quantity: 80, unit: "g" }, { name: "Jambon", quantity: 50, unit: "g" }, { name: "Courgettes", quantity: 0.5, unit: "pièce" }, { name: "Fromage de chèvre", quantity: 50, unit: "g" }, { name: "Œufs", quantity: 2, unit: "pièces" }] },
+  { id: 66, name: "Salade melon mozzarella jambon", category: "viande", servings: 1, description: "Salade melon, mozzarella et jambon cru", ingredients: [{ name: "Melon", quantity: 0.5, unit: "pièce" }, { name: "Mozzarella", quantity: 60, unit: "g" }, { name: "Jambon cru", quantity: 2, unit: "tranches" }] },
+
+  // === POISSONS ===
+  { id: 100, name: "Poulpe", category: "poisson", servings: 1, description: "Poulpe grillé ou en salade", ingredients: [{ name: "Poulpe", quantity: 150, unit: "g" }, { name: "Huile d'olive", quantity: 2, unit: "c. à soupe" }, { name: "Citron", quantity: 0.5, unit: "pièce" }] },
+  { id: 101, name: "Pâtes champignons thon", category: "poisson", servings: 2, description: "Pâtes aux champignons et thon", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Thon en conserve", quantity: 80, unit: "g" }, { name: "Champignons", quantity: 80, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 102, name: "Pâtes champignons sardines", category: "poisson", servings: 2, description: "Pâtes aux champignons et sardines", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Sardines", quantity: 1, unit: "boîte" }, { name: "Champignons", quantity: 80, unit: "g" }] },
+  { id: 103, name: "Pâtes champignons saumon", category: "poisson", servings: 2, description: "Pâtes aux champignons et saumon", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Saumon", quantity: 100, unit: "g" }, { name: "Champignons", quantity: 80, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 104, name: "Pâtes courgettes saumon", category: "poisson", servings: 2, description: "Pâtes aux courgettes et saumon", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Saumon", quantity: 100, unit: "g" }, { name: "Courgettes", quantity: 1, unit: "pièce" }] },
+  { id: 105, name: "Pâtes saumon fumé", category: "poisson", servings: 1, description: "Pâtes au saumon fumé", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Saumon fumé", quantity: 50, unit: "g" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
+  { id: 106, name: "Linguines crevettes citron", category: "poisson", servings: 1, description: "Linguines crevettes citron (beurre, crème, persil, curcuma)", ingredients: [{ name: "Linguines", quantity: 100, unit: "g" }, { name: "Crevettes", quantity: 100, unit: "g" }, { name: "Citron", quantity: 0.5, unit: "pièce" }, { name: "Beurre", quantity: 15, unit: "g" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 107, name: "Tielle salade", category: "poisson", servings: 1, description: "Mode Reheat 180°/7min", ingredients: [{ name: "Tielle", quantity: 1, unit: "pièce" }, { name: "Salade", quantity: 60, unit: "g" }] },
+  { id: 108, name: "Brandade", category: "poisson", servings: 2, description: "Brandade de morue", ingredients: [{ name: "Brandade", quantity: 200, unit: "g" }, { name: "Salade", quantity: 50, unit: "g" }] },
+  { id: 109, name: "Seiches", category: "poisson", servings: 1, description: "Seiches à la plancha", ingredients: [{ name: "Seiches", quantity: 150, unit: "g" }, { name: "Ail", quantity: 1, unit: "gousse" }, { name: "Persil", quantity: 1, unit: "c. à soupe" }] },
+  { id: 110, name: "Bruschetta tomates mozza sardines", category: "poisson", servings: 1, description: "Bruschetta tomates mozza maquereaux/sardines", ingredients: [{ name: "Pain", quantity: 2, unit: "tranches" }, { name: "Tomates", quantity: 1, unit: "pièce" }, { name: "Mozzarella", quantity: 50, unit: "g" }, { name: "Sardines", quantity: 0.5, unit: "boîte" }] },
+  { id: 111, name: "Cabillaud sauce moutarde riz", category: "poisson", servings: 2, description: "Cabillaud sauce moutarde, riz, courgette, carotte", ingredients: [{ name: "Cabillaud", quantity: 1, unit: "filet" }, { name: "Riz", quantity: 80, unit: "g" }, { name: "Courgettes", quantity: 0.5, unit: "pièce" }, { name: "Carottes", quantity: 1, unit: "pièce" }, { name: "Moutarde", quantity: 1, unit: "c. à soupe" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 112, name: "Cabillaud sauce tomate pâtes", category: "poisson", servings: 2, description: "Cabillaud à la sauce tomate et pâtes", ingredients: [{ name: "Cabillaud", quantity: 1, unit: "filet" }, { name: "Pâtes", quantity: 100, unit: "g" }, { name: "Sauce tomate", quantity: 10, unit: "cl" }] },
+  { id: 113, name: "Cabillaud papillote riz", category: "poisson", servings: 1, description: "Cabillaud en papillote et riz", ingredients: [{ name: "Cabillaud", quantity: 1, unit: "filet" }, { name: "Riz", quantity: 80, unit: "g" }, { name: "Citron", quantity: 0.25, unit: "pièce" }] },
+  { id: 114, name: "Cabillaud purée", category: "poisson", servings: 2, description: "Cabillaud et purée de pommes de terre", ingredients: [{ name: "Cabillaud", quantity: 1, unit: "filet" }, { name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Lait", quantity: 5, unit: "cl" }, { name: "Beurre", quantity: 15, unit: "g" }] },
+  { id: 115, name: "Crevettes sautées ail patates", category: "poisson", servings: 1, description: "Crevettes sautées à l'ail et patates", ingredients: [{ name: "Crevettes", quantity: 120, unit: "g" }, { name: "Pommes de terre", quantity: 150, unit: "g" }, { name: "Ail", quantity: 2, unit: "gousses" }] },
+  { id: 116, name: "Œufs brouillés crevettes pâtes", category: "poisson", servings: 1, description: "Œufs brouillés aux crevettes et pâtes", ingredients: [{ name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Crevettes", quantity: 80, unit: "g" }, { name: "Pâtes", quantity: 80, unit: "g" }] },
+  { id: 117, name: "Pâtes saumon fromage frais", category: "poisson", servings: 2, description: "Pâtes au saumon et fromage frais", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Saumon", quantity: 100, unit: "g" }, { name: "Fromage frais", quantity: 50, unit: "g" }] },
+  { id: 118, name: "Pâtes crémeuses saumon fumé", category: "poisson", servings: 1, description: "Pâtes crémeuses au saumon fumé", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Saumon fumé", quantity: 50, unit: "g" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
+  { id: 119, name: "Quiche saumon brocolis", category: "poisson", servings: 2, description: "Quiche sans pâte au saumon et brocolis", ingredients: [{ name: "Saumon", quantity: 80, unit: "g" }, { name: "Brocolis", quantity: 100, unit: "g" }, { name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
+  { id: 120, name: "Riz crevettes légumes", category: "poisson", servings: 2, description: "Riz aux crevettes et petits légumes", ingredients: [{ name: "Riz", quantity: 80, unit: "g" }, { name: "Crevettes", quantity: 100, unit: "g" }, { name: "Légumes", quantity: 100, unit: "g" }] },
+  { id: 121, name: "Salade saumon avocat œuf", category: "poisson", servings: 1, description: "Salade de saumon, avocat et œuf", ingredients: [{ name: "Saumon fumé", quantity: 50, unit: "g" }, { name: "Avocat", quantity: 0.5, unit: "pièce" }, { name: "Œufs", quantity: 1, unit: "pièce" }, { name: "Salade", quantity: 60, unit: "g" }] },
+  { id: 122, name: "Sandwich saumon tzatziki", category: "poisson", servings: 1, description: "Sandwich au saumon et tzatziki", ingredients: [{ name: "Pain", quantity: 1, unit: "pièce" }, { name: "Saumon fumé", quantity: 50, unit: "g" }, { name: "Tzatziki", quantity: 2, unit: "c. à soupe" }] },
+  { id: 123, name: "Saumon purée courgettes", category: "poisson", servings: 2, description: "Saumon et purée de courgettes", ingredients: [{ name: "Saumon", quantity: 1, unit: "pavé" }, { name: "Courgettes", quantity: 2, unit: "pièces" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }] },
+  { id: 124, name: "Steak thon purée carottes", category: "poisson", servings: 1, description: "Steak de thon et purée de carottes", ingredients: [{ name: "Steak de thon", quantity: 1, unit: "pièce" }, { name: "Carottes", quantity: 3, unit: "pièces" }, { name: "Beurre", quantity: 15, unit: "g" }] },
+  { id: 125, name: "Wrap saumon fromage frais", category: "poisson", servings: 1, description: "Wrap de saumon et fromage frais", ingredients: [{ name: "Tortilla", quantity: 1, unit: "pièce" }, { name: "Saumon fumé", quantity: 40, unit: "g" }, { name: "Fromage frais", quantity: 30, unit: "g" }] },
+  { id: 126, name: "Steak thon riz courgettes", category: "poisson", servings: 1, description: "Steak de thon + riz + courgettes grillées", ingredients: [{ name: "Steak de thon", quantity: 1, unit: "pièce" }, { name: "Riz", quantity: 80, unit: "g" }, { name: "Courgettes", quantity: 1, unit: "pièce" }] },
+  { id: 127, name: "Bruschetta saumon", category: "poisson", servings: 1, description: "Bruschetta saumon (pain, saumon fumé, crème fraîche, emmental)", ingredients: [{ name: "Pain", quantity: 2, unit: "tranches" }, { name: "Saumon fumé", quantity: 50, unit: "g" }, { name: "Crème fraîche", quantity: 2, unit: "c. à soupe" }, { name: "Emmental", quantity: 30, unit: "g" }] },
+
+  // === VÉGÉTARIEN ===
+  { id: 200, name: "Camembert rôti", category: "végétarien", servings: 1, description: "Camembert au four avec salade", ingredients: [{ name: "Camembert", quantity: 1, unit: "pièce" }, { name: "Salade", quantity: 60, unit: "g" }, { name: "Noix", quantity: 20, unit: "g" }] },
+  { id: 201, name: "Carpaccio", category: "végétarien", servings: 1, description: "Carpaccio de légumes ou bœuf", ingredients: [{ name: "Carpaccio", quantity: 100, unit: "g" }, { name: "Parmesan", quantity: 20, unit: "g" }, { name: "Roquette", quantity: 30, unit: "g" }] },
+  { id: 202, name: "Pizza", category: "végétarien", servings: 1, description: "Pizza maison ou surgelée", ingredients: [{ name: "Pizza", quantity: 1, unit: "pièce" }] },
+  { id: 203, name: "Pâtes pistou œufs", category: "végétarien", servings: 2, description: "Pâtes au pistou avec œufs", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Pesto", quantity: 2, unit: "c. à soupe" }, { name: "Œufs", quantity: 2, unit: "pièces" }] },
+  { id: 204, name: "Pâtes fraîches", category: "végétarien", servings: 1, description: "Pâtes fraîches Rana ou Lustucru", ingredients: [{ name: "Pâtes fraîches", quantity: 150, unit: "g" }] },
+  { id: 205, name: "Pâtes courgettes omelette", category: "végétarien", servings: 2, description: "Pâtes aux courgettes et omelette", ingredients: [{ name: "Pâtes", quantity: 100, unit: "g" }, { name: "Courgettes", quantity: 1, unit: "pièce" }, { name: "Œufs", quantity: 2, unit: "pièces" }] },
+  { id: 206, name: "Patates à la grecque", category: "végétarien", servings: 2, description: "Patates fêta, olives, tomate, oignons", ingredients: [{ name: "Pommes de terre", quantity: 200, unit: "g" }, { name: "Fêta", quantity: 60, unit: "g" }, { name: "Olives", quantity: 30, unit: "g" }, { name: "Tomates", quantity: 1, unit: "pièce" }] },
+  { id: 207, name: "Soupe", category: "végétarien", servings: 2, description: "Soupe de légumes", ingredients: [{ name: "Soupe", quantity: 30, unit: "cl" }, { name: "Pain", quantity: 2, unit: "tranches" }] },
+  { id: 208, name: "Omelette", category: "végétarien", servings: 1, description: "Omelette nature ou garnie", ingredients: [{ name: "Œufs", quantity: 3, unit: "pièces" }, { name: "Beurre", quantity: 10, unit: "g" }] },
+  { id: 209, name: "Œufs durs", category: "végétarien", servings: 1, description: "Œufs durs mayonnaise", ingredients: [{ name: "Œufs", quantity: 3, unit: "pièces" }, { name: "Mayonnaise", quantity: 1, unit: "c. à soupe" }] },
+  { id: 210, name: "Œufs à la coque", category: "végétarien", servings: 1, description: "Œufs à la coque mouillettes", ingredients: [{ name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Pain", quantity: 2, unit: "tranches" }, { name: "Beurre", quantity: 10, unit: "g" }] },
+  { id: 211, name: "Œufs cocotte", category: "végétarien", servings: 1, description: "Œufs cocotte à la crème", ingredients: [{ name: "Œufs", quantity: 2, unit: "pièces" }, { name: "Crème fraîche", quantity: 3, unit: "cl" }, { name: "Fromage râpé", quantity: 20, unit: "g" }] },
+  { id: 212, name: "Guacamole", category: "végétarien", servings: 1, description: "Guacamole avec tortillas chips", ingredients: [{ name: "Avocat", quantity: 1, unit: "pièce" }, { name: "Citron vert", quantity: 0.5, unit: "pièce" }, { name: "Tomates", quantity: 0.5, unit: "pièce" }, { name: "Tortillas chips", quantity: 50, unit: "g" }] },
+  { id: 213, name: "Aubergines farcies mozzarella", category: "végétarien", servings: 2, description: "Aubergines farcies sauce tomate, mozzarella, basilic, parmesan", ingredients: [{ name: "Aubergines", quantity: 1, unit: "pièce" }, { name: "Sauce tomate", quantity: 10, unit: "cl" }, { name: "Mozzarella", quantity: 60, unit: "g" }, { name: "Parmesan", quantity: 20, unit: "g" }] },
+  { id: 214, name: "Ravioles", category: "végétarien", servings: 1, description: "Ravioles à la crème", ingredients: [{ name: "Ravioles", quantity: 150, unit: "g" }, { name: "Crème fraîche", quantity: 5, unit: "cl" }] },
+  { id: 215, name: "Frites", category: "végétarien", servings: 1, description: "Frites maison ou surgelées", ingredients: [{ name: "Frites", quantity: 200, unit: "g" }] },
+  { id: 216, name: "Carottes rôties", category: "végétarien", servings: 2, description: "Carottes rôties au four", ingredients: [{ name: "Carottes", quantity: 4, unit: "pièces" }, { name: "Huile d'olive", quantity: 2, unit: "c. à soupe" }, { name: "Miel", quantity: 1, unit: "c. à soupe" }] },
+  { id: 217, name: "Courgettes rôties", category: "végétarien", servings: 2, description: "Courgettes rôties au four", ingredients: [{ name: "Courgettes", quantity: 2, unit: "pièces" }, { name: "Huile d'olive", quantity: 2, unit: "c. à soupe" }] },
+  { id: 218, name: "Salade César", category: "végétarien", servings: 1, description: "Salade César", ingredients: [{ name: "Salade romaine", quantity: 100, unit: "g" }, { name: "Parmesan", quantity: 30, unit: "g" }, { name: "Croûtons", quantity: 30, unit: "g" }, { name: "Sauce César", quantity: 2, unit: "c. à soupe" }] }
+];
 
     const weekSchedule = [
       { day: "Lundi", meals: ["midi", "soir"] },
@@ -92,11 +189,58 @@
       { day: "Dimanche", meals: ["midi", "soir"] }
     ];
 
+    // MealForm component OUTSIDE MenuPlanner to prevent re-renders and fix input focus issue
+    const MealForm = memo(({ form, onUpdate, onSave, isEditing }) => {
+      const updateField = (field, value) => onUpdate({ ...form, [field]: value });
+      const updateIngredient = (idx, field, value) => {
+        const newIngredients = form.ingredients.map((ing, i) => i === idx ? { ...ing, [field]: value } : ing);
+        onUpdate({ ...form, ingredients: newIngredients });
+      };
+      const addIngredient = () => onUpdate({ ...form, ingredients: [...form.ingredients, { name: '', quantity: '', unit: 'g' }] });
+      const removeIngredient = (idx) => onUpdate({ ...form, ingredients: form.ingredients.filter((_, i) => i !== idx) });
+
+      return (
+        <div className="space-y-3">
+          <input type="text" placeholder="Nom du plat" value={form.name} onChange={e => updateField('name', e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl text-white" />
+          <div className="grid grid-cols-2 gap-2">
+            <select value={form.category} onChange={e => updateField('category', e.target.value)} className="p-3 bg-slate-800 border border-slate-600 rounded-xl text-white">
+              <option value="viande">🍖 Viande</option>
+              <option value="poisson">🐟 Poisson</option>
+              <option value="végétarien">🥗 Végétarien</option>
+            </select>
+            <select value={form.servings} onChange={e => updateField('servings', parseInt(e.target.value))} className="p-3 bg-slate-800 border border-slate-600 rounded-xl text-white">
+              <option value={1}>1 fois</option>
+              <option value={2}>2 fois</option>
+            </select>
+          </div>
+          <textarea placeholder="Instructions..." value={form.description} onChange={e => updateField('description', e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl text-white min-h-[60px]" />
+          <div className="space-y-2">
+            <label className="text-sm text-slate-400">Ingrédients (1 pers.)</label>
+            {form.ingredients.map((ing, idx) => (
+              <div key={idx} className="flex gap-1">
+                <input type="text" placeholder="Nom" value={ing.name} onChange={e => updateIngredient(idx, 'name', e.target.value)} className="flex-1 p-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
+                <input type="number" placeholder="Qté" value={ing.quantity} onChange={e => updateIngredient(idx, 'quantity', e.target.value)} className="w-14 p-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm text-center" />
+                <select value={ing.unit} onChange={e => updateIngredient(idx, 'unit', e.target.value)} className="w-16 p-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm">
+                  <option value="g">g</option><option value="ml">ml</option><option value="cl">cl</option><option value="pièce">pce</option><option value="pièces">pces</option><option value="c. à soupe">c.s.</option><option value="tranches">tr.</option><option value="boîte">boîte</option><option value="gousse">gousse</option><option value="gousses">gousses</option><option value="filet">filet</option>
+                </select>
+                {form.ingredients.length > 1 && <button onClick={() => removeIngredient(idx)} className="p-2 text-red-400">✕</button>}
+              </div>
+            ))}
+            <button onClick={addIngredient} className="text-teal-400 text-sm">+ Ingrédient</button>
+          </div>
+          <button onClick={onSave} className="w-full bg-teal-600 text-white font-semibold py-3 rounded-xl">{isEditing ? 'Modifier' : 'Ajouter'}</button>
+        </div>
+      );
+    });
+
     function MenuPlanner() {
       const [currentView, setCurrentView] = useState('home');
-      const [weekMenu, setWeekMenu] = useState(null);
+      const [weekMenu, setWeekMenu] = useState(() => {
+        const saved = localStorage.getItem('weekMenu');
+        return saved ? JSON.parse(saved) : null;
+      });
       const [mealsDatabase, setMealsDatabase] = useState(() => {
-        const saved = localStorage.getItem('mealsDatabase');
+        const saved = localStorage.getItem('mealsDatabase_v3');
         return saved ? JSON.parse(saved) : defaultMealsDatabase;
       });
       const [draggedItem, setDraggedItem] = useState(null);
@@ -114,21 +258,18 @@
       const [extraItemUnit, setExtraItemUnit] = useState('pièce');
       const [mealSelectorOpen, setMealSelectorOpen] = useState(null);
       const [showAddForm, setShowAddForm] = useState(false);
-      const [checkedShoppingItems, setCheckedShoppingItems] = useState(new Set());
+      const [checkedShoppingItems, setCheckedShoppingItems] = useState(() => {
+        const saved = localStorage.getItem('checkedShoppingItems');
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+      });
       const [newMealForm, setNewMealForm] = useState({ name: '', category: 'viande', servings: 2, description: '', ingredients: [{ name: '', quantity: '', unit: 'g' }] });
 
       // Save to localStorage
-      React.useEffect(() => {
-        localStorage.setItem('mealsDatabase', JSON.stringify(mealsDatabase));
-      }, [mealsDatabase]);
-      
-      React.useEffect(() => {
-        localStorage.setItem('numberOfPeople', numberOfPeople);
-      }, [numberOfPeople]);
-      
-      React.useEffect(() => {
-        localStorage.setItem('extraItems', JSON.stringify(extraItems));
-      }, [extraItems]);
+      React.useEffect(() => { localStorage.setItem('mealsDatabase_v3', JSON.stringify(mealsDatabase)); }, [mealsDatabase]);
+      React.useEffect(() => { localStorage.setItem('numberOfPeople', numberOfPeople); }, [numberOfPeople]);
+      React.useEffect(() => { localStorage.setItem('extraItems', JSON.stringify(extraItems)); }, [extraItems]);
+      React.useEffect(() => { if (weekMenu) localStorage.setItem('weekMenu', JSON.stringify(weekMenu)); }, [weekMenu]);
+      React.useEffect(() => { localStorage.setItem('checkedShoppingItems', JSON.stringify([...checkedShoppingItems])); }, [checkedShoppingItems]);
 
       const generateWeekMenu = useCallback(() => {
         const availableMeals = [...mealsDatabase];
@@ -172,6 +313,7 @@
         });
 
         setWeekMenu(menu);
+        setCheckedShoppingItems(new Set());
         setCurrentView('planning');
       }, [mealsDatabase]);
 
@@ -251,10 +393,10 @@
         
         const cat = { "🥩 Viandes": [], "🥬 Légumes": [], "🧀 Laitiers": [], "🍝 Épicerie": [], "🛒 Ajouts": [], "📦 Autres": [] };
         const kw = {
-          "🥩 Viandes": ["poulet", "bœuf", "veau", "porc", "saumon", "cabillaud", "thon", "viande", "lardons", "jambon", "filet", "tofu"],
-          "🥬 Légumes": ["pomme", "carotte", "oignon", "courgette", "aubergine", "poivron", "tomate", "brocoli", "salade", "champignon", "citron", "haricot", "navet"],
-          "🧀 Laitiers": ["crème", "lait", "beurre", "fromage", "gruyère", "parmesan", "mozzarella", "œuf", "béchamel"],
-          "🍝 Épicerie": ["pâte", "riz", "spaghetti", "penne", "tortilla", "semoule", "nouille", "pois chiche", "haricot rouge", "maïs", "olive", "pesto", "sauce", "huile"]
+          "🥩 Viandes": ["poulet", "bœuf", "veau", "porc", "saumon", "cabillaud", "thon", "viande", "lardons", "jambon", "filet", "tofu", "dinde", "lapin", "saucisse", "steak", "escalope", "bacon", "gésiers", "andouillette", "boulettes", "kefta", "crevettes", "poulpe", "seiches"],
+          "🥬 Légumes": ["pomme", "carotte", "oignon", "courgette", "aubergine", "poivron", "tomate", "brocoli", "salade", "champignon", "citron", "haricot", "navet", "épinard", "avocat", "légume", "pois", "maïs", "melon", "olive", "roquette"],
+          "🧀 Laitiers": ["crème", "lait", "beurre", "fromage", "gruyère", "parmesan", "mozzarella", "œuf", "béchamel", "fêta", "emmental", "chèvre", "raclette", "camembert", "roquefort"],
+          "🍝 Épicerie": ["pâte", "riz", "spaghetti", "penne", "tortilla", "semoule", "nouille", "pois chiche", "haricot rouge", "olive", "pesto", "sauce", "huile", "pain", "farine", "gnocchi", "lentille", "pizza", "raviole", "frite", "linguine", "croûton", "cassoulet", "brandade", "tielle", "samosa"]
         };
         Object.values(list).forEach(item => {
           if (item.isExtra) { cat["🛒 Ajouts"].push(item); return; }
@@ -276,7 +418,7 @@
       const removeExtraItem = useCallback((id) => setExtraItems(prev => prev.filter(i => i.id !== id)), []);
       const toggleShoppingItem = useCallback((key) => setCheckedShoppingItems(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; }), []);
 
-      const saveMeal = () => {
+      const saveMeal = useCallback(() => {
         const form = editingMeal || newMealForm;
         if (!form.name.trim()) { alert("Entrez un nom"); return; }
         const validIng = form.ingredients.filter(i => i.name.trim() && i.quantity);
@@ -285,69 +427,33 @@
         if (editingMeal) { setMealsDatabase(prev => prev.map(m => m.id === editingMeal.id ? data : m)); setEditingMeal(null); }
         else setMealsDatabase(prev => [...prev, data]);
         setNewMealForm({ name: '', category: 'viande', servings: 2, description: '', ingredients: [{ name: '', quantity: '', unit: 'g' }] });
-      };
+      }, [editingMeal, newMealForm]);
 
       const deleteMeal = (id) => { if (confirm("Supprimer ?")) setMealsDatabase(prev => prev.filter(m => m.id !== id)); };
-      const addIngredientField = (e) => { const s = e ? setEditingMeal : setNewMealForm; s(p => ({ ...p, ingredients: [...p.ingredients, { name: '', quantity: '', unit: 'g' }] })); };
-      const updateIngredient = (idx, f, v, e) => { const s = e ? setEditingMeal : setNewMealForm; s(p => ({ ...p, ingredients: p.ingredients.map((ing, i) => i === idx ? { ...ing, [f]: v } : ing) })); };
-      const removeIngredient = (idx, e) => { const s = e ? setEditingMeal : setNewMealForm; s(p => ({ ...p, ingredients: p.ingredients.filter((_, i) => i !== idx) })); };
       const startEditing = (meal) => setEditingMeal({ ...meal, ingredients: [...meal.ingredients] });
-
-      const MealForm = ({ form, setForm, isEditing = false }) => (
-        <div className="space-y-3">
-          <input type="text" placeholder="Nom du plat" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl text-white" />
-          <div className="grid grid-cols-2 gap-2">
-            <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="p-3 bg-slate-800 border border-slate-600 rounded-xl text-white">
-              <option value="viande">🍖 Viande</option>
-              <option value="poisson">🐟 Poisson</option>
-              <option value="végétarien">🥗 Végétarien</option>
-            </select>
-            <select value={form.servings} onChange={e => setForm(p => ({ ...p, servings: parseInt(e.target.value) }))} className="p-3 bg-slate-800 border border-slate-600 rounded-xl text-white">
-              <option value={1}>1 fois</option>
-              <option value={2}>2 fois</option>
-            </select>
-          </div>
-          <textarea placeholder="Instructions..." value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl text-white min-h-[60px]" />
-          <div className="space-y-2">
-            <label className="text-sm text-slate-400">Ingrédients (1 pers.)</label>
-            {form.ingredients.map((ing, idx) => (
-              <div key={idx} className="flex gap-1">
-                <input type="text" placeholder="Nom" value={ing.name} onChange={e => updateIngredient(idx, 'name', e.target.value, isEditing)} className="flex-1 p-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                <input type="number" placeholder="Qté" value={ing.quantity} onChange={e => updateIngredient(idx, 'quantity', e.target.value, isEditing)} className="w-14 p-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm text-center" />
-                <select value={ing.unit} onChange={e => updateIngredient(idx, 'unit', e.target.value, isEditing)} className="w-16 p-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm">
-                  <option value="g">g</option><option value="ml">ml</option><option value="cl">cl</option><option value="pièce">pce</option><option value="c. à soupe">c.s.</option>
-                </select>
-                {form.ingredients.length > 1 && <button onClick={() => removeIngredient(idx, isEditing)} className="p-2 text-red-400">✕</button>}
-              </div>
-            ))}
-            <button onClick={() => addIngredientField(isEditing)} className="text-teal-400 text-sm">+ Ingrédient</button>
-          </div>
-          <button onClick={saveMeal} className="w-full bg-teal-600 text-white font-semibold py-3 rounded-xl">{isEditing ? 'Modifier' : 'Ajouter'}</button>
-        </div>
-      );
 
       // HOME VIEW
       if (currentView === 'home') return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
           <div className="max-w-md mx-auto pt-6">
             <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-xl">
-                <Icon d={Icons.utensils} className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-xl overflow-hidden">
+                <img src="icon-192.png" alt="Menu Planner" className="w-full h-full object-cover" />
               </div>
               <h1 className="text-2xl font-bold text-white">Menu Planner</h1>
             </div>
             <div className="space-y-3">
               <button onClick={generateWeekMenu} className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2">
-                <Icon d={Icons.shuffle} /> Générer le menu
+                <Icon d={Icons.shuffle} className="w-5 h-5" /> Générer le menu
               </button>
               {weekMenu && <button onClick={() => setCurrentView('planning')} className="w-full bg-slate-800 text-white py-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-700">
-                <Icon d={Icons.calendar} className="text-teal-400" /> Voir le menu
+                <Icon d={Icons.calendar} className="w-5 h-5 text-teal-400" /> Voir le menu
               </button>}
               <button onClick={() => setCurrentView('shopping')} className="w-full bg-slate-800 text-white py-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-700">
-                <Icon d={Icons.cart} className="text-emerald-400" /> Liste de courses {extraItems.length > 0 && <span className="bg-emerald-500 text-xs px-2 rounded-full">+{extraItems.length}</span>}
+                <Icon d={Icons.cart} className="w-5 h-5 text-emerald-400" /> Liste de courses {extraItems.length > 0 && <span className="bg-emerald-500 text-xs px-2 rounded-full">+{extraItems.length}</span>}
               </button>
               <button onClick={() => setCurrentView('database')} className="w-full bg-slate-800 text-white py-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-700">
-                <Icon d={Icons.edit} className="text-amber-400" /> Plats ({mealsDatabase.length})
+                <Icon d={Icons.edit} className="w-5 h-5 text-amber-400" /> Plats ({mealsDatabase.length})
               </button>
             </div>
             <div className="mt-6 bg-slate-800 rounded-2xl p-4 border border-slate-700">
@@ -408,7 +514,7 @@
             </div>
             <div className="fixed bottom-4 left-4 right-4 max-w-lg mx-auto">
               <button onClick={() => setCurrentView('shopping')} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2">
-                <Icon d={Icons.cart} /> Liste de courses
+                <Icon d={Icons.cart} className="w-5 h-5" /> Liste de courses
               </button>
             </div>
           </div>
@@ -490,7 +596,7 @@
                 ))}
               </div>
               {!weekMenu && extraItems.length === 0 && <div className="text-center py-12 text-slate-400"><Icon d={Icons.cart} className="w-12 h-12 mx-auto mb-2 text-slate-600" /><p>Générez un menu ou ajoutez des articles</p></div>}
-              {checked === total && total > 0 && <div className="mt-6 text-center"><span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full"><Icon d={Icons.check} /> Terminé !</span></div>}
+              {checked === total && total > 0 && <div className="mt-6 text-center"><span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full"><Icon d={Icons.check} className="w-5 h-5" /> Terminé !</span></div>}
             </div>
           </div>
         );
@@ -507,7 +613,14 @@
             </div>
             <div className="bg-slate-800/60 rounded-2xl p-4 mb-4 border border-slate-700">
               <h3 className="font-semibold text-white mb-3 flex items-center gap-2">{editingMeal ? <><Icon d={Icons.edit} className="w-5 h-5 text-amber-400" /> Modifier</> : <><Icon d={Icons.plus} className="w-5 h-5 text-teal-400" /> Ajouter</>}</h3>
-              {editingMeal ? <><MealForm form={editingMeal} setForm={setEditingMeal} isEditing={true} /><button onClick={() => setEditingMeal(null)} className="w-full mt-2 py-2 text-slate-400">Annuler</button></> : <MealForm form={newMealForm} setForm={setNewMealForm} />}
+              {editingMeal ? (
+                <>
+                  <MealForm form={editingMeal} onUpdate={setEditingMeal} onSave={saveMeal} isEditing={true} />
+                  <button onClick={() => setEditingMeal(null)} className="w-full mt-2 py-2 text-slate-400">Annuler</button>
+                </>
+              ) : (
+                <MealForm form={newMealForm} onUpdate={setNewMealForm} onSave={saveMeal} isEditing={false} />
+              )}
             </div>
             <div className="space-y-2">
               <div className="flex justify-between px-1 text-slate-400 text-sm"><span>Plats existants</span><span>{mealsDatabase.length}</span></div>

@@ -1,9 +1,10 @@
-const CACHE_NAME = 'menu-planner-v1';
+const CACHE_NAME = 'menu-planner-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.svg'
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Installation
